@@ -4,14 +4,12 @@ This is a 2D implementation of bouncing particles in a box.
 
 [KEY SETTING]  
 r/0: Reset.  
-a: Add 20 particles.
+a: Add 20 particles.  
 Arrow keys: Act force.
 
-[MOUSE SETTING]
-
-Left click: Pull particles.
+[MOUSE SETTING]  
+Left click: Pull particles.  
 Right click: Repel particles.
-
 
 
 Author: Sadashige Ishida
