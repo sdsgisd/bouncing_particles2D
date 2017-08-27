@@ -1,5 +1,6 @@
 # bouncing_particles2D
 This is a 2D implementation of bouncing particles in a box (in C++).
+[Youtube Video][Y]
 
 <!-- ![Screen Shot](https://github.com/sdsgisd/bouncing_particles2D/blob/master/screenshot.png =60x60) -->
 <!--60x60 is the size of image-->
@@ -15,7 +16,7 @@ Arrow keys: Act force.
 Left click: Pull particles.  
 Right click: Repel particles.
 
-For making movie with libav,  
+For making a movie with libav,  
 "avconv -start_number 2 -r 100 -i ./image%6d.png -r 60 -vf "scale=640:480,setsar=1" -b:v 120000k ../movie.mp4"
 
 Dependencies: OpenGL, GLFW3, GLEW, libpng
@@ -24,6 +25,7 @@ License: MIT
 
 Currently attached Makefile and CMakeLists.txt are supported only for Mac.  
 <!-- The library was tested on Mac OS X 10.11.6 -->
-For Xcode users,   [Getting Started in OpenGL with GLFW/GLEW in Xcode 6(Youtube)][1]
+For Xcode users,   [Getting Started in OpenGL with GLFW/GLEW in Xcode 6(Youtube)][X]
 
-[1]:https://www.youtube.com/watch?v=lTmM3Y8SMOM
+[Y]:https://www.youtube.com/watch?v=10r78SzERII&feature=youtu.be
+[X]:https://www.youtube.com/watch?v=lTmM3Y8SMOM
