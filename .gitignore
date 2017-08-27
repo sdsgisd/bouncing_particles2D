@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+#Build directories of Xcode
+Build/
+DerivedData/
