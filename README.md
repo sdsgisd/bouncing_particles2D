@@ -1,6 +1,8 @@
 # bouncing_particles2D
 This is a 2D implementation of bouncing particles in a box (in C++).  
-[Youtube Video][Y]
+<!-- [Youtube Video][Y] -->
+[![Youtube Video](https://img.youtube.com/vi/10r78SzERII/0.jpg)](https://www.youtube.com/watch?v=lTmM3Y8SMOM)
+
 
 <!-- ![Screen Shot](https://github.com/sdsgisd/bouncing_particles2D/blob/master/screenshot.png =60x60) -->
 <!--60x60 is the size of image-->
@@ -27,5 +29,5 @@ Currently attached Makefile and CMakeLists.txt are supported only for Mac.
 <!-- The library was tested on Mac OS X 10.11.6 -->
 For Xcode users,   [Getting Started in OpenGL with GLFW/GLEW in Xcode 6(Youtube)][X]
 
-[Y]:https://www.youtube.com/watch?v=10r78SzERII&feature=youtu.be
+[Y]:https://www.youtube.com/watch?v=10r78SzERII
 [X]:https://www.youtube.com/watch?v=lTmM3Y8SMOM
