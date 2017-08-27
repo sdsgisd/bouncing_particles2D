@@ -24,7 +24,7 @@ Right click: Repel particles.
 For making a movie with libav,  
 "avconv -start_number 2 -r 100 -i ./image%6d.png -r 60 -vf "scale=640:480,setsar=1" -b:v 120000k ../movie.mp4"
 
-Dependencies: OpenGL, GLFW3, GLEW, libpng
+Dependencies: OpenGL, GLFW3, GLEW, libpng  
 Author: Sadashige Ishida  
 License: MIT  
 
