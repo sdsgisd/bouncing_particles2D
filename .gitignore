@@ -31,6 +31,8 @@
 *.out
 *.app
 
-#Build directories of Xcode
+#Binary files
 Build/
 DerivedData/
+build/
+xcodebuild/
