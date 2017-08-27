@@ -27,4 +27,4 @@ Currently attached Makefile and CMakeLists.txt are supported only for Mac.
 
 For Xcode users,   [Getting Started in OpenGL with GLFW/GLEW in Xcode 6(Youtube)][1]
 
-[1]:https://www.youtube.com/watch?v=lTmM3Y8SMOM "Title"
+[1]:https://www.youtube.com/watch?v=lTmM3Y8SMOM
