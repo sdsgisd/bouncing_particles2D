@@ -4,7 +4,7 @@ This is a 2D implementation of bouncing particles in a box.
 Currently supported only for Mac.
 <!-- The library was tested on Mac OS X 10.11.6 -->
 
-Author: Sadashige Ishdia
+Author: Sadashige Ishida
 
 License: MIT
 
