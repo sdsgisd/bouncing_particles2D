@@ -2,9 +2,8 @@
 This is a 2D implementation of bouncing particles in a box.
 
 
-[KEY SETTING]
-
-r/0: Reset.
+[KEY SETTING]  
+r/0: Reset.  
 a: Add 20 particles.
 Arrow keys: Act force.
 
