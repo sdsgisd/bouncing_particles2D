@@ -1,12 +1,14 @@
 # bouncing_particles2D
 This is a 2D implementation of bouncing particles in a box (in C++).  
 <!-- [Youtube Video][Y] -->
-[![Youtube Video](https://img.youtube.com/vi/10r78SzERII/1000.jpg)](https://www.youtube.com/watch?v=10r78SzERII)
+[![Youtube Video](http://i.ytimg.com/vi/10r78SzERII/0.jpg)](https://www.youtube.com/watch?v=10r78SzERII)
 
 
 <!-- ![Screen Shot](https://github.com/sdsgisd/bouncing_particles2D/blob/master/screenshot.png =60x60) -->
 <!--60x60 is the size of image-->
-<img src="https://github.com/sdsgisd/bouncing_particles2D/blob/master/screenshot.png" width="500px">
+
+<!-- Screen Shot -->
+<!-- <img src="https://github.com/sdsgisd/bouncing_particles2D/blob/master/screenshot.png" width="500px"> -->
 
 
 [KEY SETTING]  
