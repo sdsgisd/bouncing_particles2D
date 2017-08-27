@@ -11,8 +11,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
+
 #include <cmath>
 #include <vector>
+#include <string>
 #include <random>
 #include <iostream>
 #include <sstream>
@@ -22,6 +25,9 @@
 
 using std::vector;
 using std::fabs;
+
+bool record_images=false;
+std::string output_directory="output_images";
 
 //very small number.
 const float epsilon=0.001f;
@@ -58,6 +64,9 @@ int window_width, window_height;
 const float ceil_=-0.9f,floor_=0.9f;
 const float left_=-0.9f,right_=0.9f;
 
+class Particle;
+vector<Particle> particles;
+
 namespace png_writer {
     
     struct Pixel
@@ -70,10 +79,8 @@ namespace png_writer {
     
     Pixel* m_data; // raw image data
     
-    
     //Reference for writing png:
     //https://github.com/olkido/libigl_smgpclass/blob/master/external/yimg/YImage.cpp
-    
     
     Pixel&
     at( int i, int j )
@@ -85,10 +92,9 @@ namespace png_writer {
         return m_data[ i + j * window_width ] ;
     }
     
-    void flip()
+    void flip_ceil_to_floor()
     {
-        //int window_width=window_width;
-        //int window_height=window_height;
+        
         for( int j = 0 ; j < window_height / 2 ; ++j )
             for( int i = 0 ; i < window_width ; ++i )
             {
@@ -105,28 +111,26 @@ namespace png_writer {
     // We use out own reading/writing functions because libpng may have
     // been compiled using a different compiler & libc.  That could make
     // the FILE*'s incompatible.
-    static void write_func(png_structp png_ptr, png_bytep data, png_size_t length)
+    inline static void write_func(png_structp png_ptr, png_bytep data, png_size_t length)
     {
         png_voidp write_io_ptr = png_get_io_ptr(png_ptr);
         fwrite((unsigned char*) data, length, 1, (FILE*) write_io_ptr);
     }
     
-    static void flush_func(png_structp png_ptr)
+    inline static void flush_func(png_structp png_ptr)
     {
         png_voidp write_io_ptr = png_get_io_ptr(png_ptr);
         fflush((FILE*) write_io_ptr);
     }
     
-    
-    void save_png(const char* fname)
+    inline bool save_png(const char* fname)
     {
-  
+        
         m_data = (Pixel*) malloc(window_width * window_height * sizeof(Pixel));
-        flip();
-
         
         glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char *)(m_data));
         
+        flip_ceil_to_floor();
         FILE* fp = NULL;
         bool rval = true;
         png_structp png_ptr = NULL;
@@ -241,10 +245,7 @@ namespace png_writer {
         return rval;
     }
     
-
-
 }
-
 
 struct Vector2{
     
@@ -408,7 +409,18 @@ public:
     
 };
 
-vector<Particle> particles;
+inline void save_image(){
+    
+    static int image_count=0;
+    
+    std::stringstream filename_ss;
+    
+    mkdir(output_directory.c_str(), 0755);
+    filename_ss <<output_directory<< "/image" << std::setfill('0') << std::setw(6) << image_count++ << ".png";
+    
+    png_writer::save_png(filename_ss.str().c_str());
+    
+}
 
 inline void handleCollision(){
     for(int i=0;i!=particles.size();++i){
@@ -603,22 +615,15 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
     }
     
     if ( key==GLFW_KEY_S &&action==GLFW_PRESS){
-        static int image_count=0;
-        //create_ppm("tmp", ++nscreenshots, window_width, window_height, 255, FORMAT_NBYTES, pixels);
         
-        //uint8_t *pixels2 = new uint8_t[window_width * window_height * 3];
-        //        save_png_libpng("test.png", window_width, window_height);
+        save_image();
         
-        //save_png2("test2.png", window_width, window_height,8, PNG_COLOR_TYPE_RGB,pixels, 3*window_width);
+    }
+    
+    if ( key==GLFW_KEY_W &&action==GLFW_PRESS){
         
+        record_images=!record_images;
         
-        
-        std::stringstream filename_ss;
-        
-        filename_ss << "image" << std::setfill('0') << std::setw(6) << ++image_count << ".png";
-
-        
-        png_writer::save_png(filename_ss.str().c_str());
     }
     
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -696,6 +701,9 @@ void show_key_mouse_setting(){
     cout<<"r/0: Reset."<<endl;
     cout<<"a: Add "<<num_particle<<" particles."<<endl;
     cout<<"Arrow keys: Act force."<<endl;
+    cout<<"s: Save a screen shot."<<endl;
+    cout<<"w: Turn on/off recording mode. Images are saved in \""<<output_directory<<"\"directory."<<endl;
+
     cout<<endl;
     cout<<"[MOUSE SETTING]"<<endl;
     cout<<"Left click: Pull particles."<<endl;
@@ -712,7 +720,7 @@ int main(void)
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
         exit(EXIT_FAILURE);
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+    window = glfwCreateWindow(60*16, 60*9, "Simple example", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -744,6 +752,10 @@ int main(void)
             step();
             
             render(window);
+            
+            if(record_images){
+                save_image();
+            }
             
             lastTime = glfwGetTime();
         }
