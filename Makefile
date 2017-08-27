@@ -5,9 +5,9 @@
 
 COMPILER  = g++
 CFLAGS    = -std=c++14
-LDFLAGS = -framework OpenGL -L/usr/local/lib -lGLEW  -lglfw.3.1
+LDFLAGS = -framework OpenGL -L/usr/local/lib -lGLEW  -lglfw.3.1 -lpng
 
-INCLUDE   = -I/usr/local/include
+INCLUDE   = -I/usr/local/include/ -I/usr/local/include/libpng16/
 BUILDDIR	= ./build
 TARGET    = bouncing_particles
 SRCDIR    = ./bouncing_particles2D

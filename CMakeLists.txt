@@ -27,9 +27,10 @@ include_directories(${OPENGL_INCLUDE_DIR})
 #include_directories(/usr/local/include/eigen3)
 
 include_directories(/usr/local/include/)
+include_directories(/usr/local/include/libpng16/)
 link_directories(/usr/local/lib)
 
 #add_executable(bouncing_particles bouncing_particles2D/bouncing_particles2D.cpp)
 
 add_executable (bouncing_particles ${Headers} ${Sources})
-target_link_libraries(bouncing_particles ${OPENGL_LIBRARIES} libglfw.3.dylib libGLEW.dylib)
+target_link_libraries(bouncing_particles ${OPENGL_LIBRARIES} libglfw.3.dylib libGLEW.dylib libpng16.dylib)

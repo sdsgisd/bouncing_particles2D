@@ -6,18 +6,28 @@
 //
 //
 
-
+#include <png.h>
 #include <GLFW/glfw3.h>
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/stat.h>
+
 #include <cmath>
 #include <vector>
+#include <string>
 #include <random>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 #include <algorithm>
+#include <cassert>
 
 using std::vector;
 using std::fabs;
+
+bool record_images=false;
+std::string output_directory="output_images";
 
 //very small number.
 const float epsilon=0.001f;
@@ -49,10 +59,193 @@ const float collisionDamp=0.95f;
 const float friction=1.f;//0.98f;
 
 float window_ratio;
-int width, height;
+int window_width, window_height;
 
 const float ceil_=-0.9f,floor_=0.9f;
 const float left_=-0.9f,right_=0.9f;
+
+class Particle;
+vector<Particle> particles;
+
+namespace png_writer {
+    
+    struct Pixel
+    {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        unsigned char a;
+    };
+    
+    Pixel* m_data; // raw image data
+    
+    //Reference for writing png:
+    //https://github.com/olkido/libigl_smgpclass/blob/master/external/yimg/YImage.cpp
+    
+    Pixel&
+    at( int i, int j )
+    
+    {
+        assert( i >= 0 && i < window_width ) ;
+        assert( j >= 0 && j < window_height ) ;
+        
+        return m_data[ i + j * window_width ] ;
+    }
+    
+    void flip_ceil_to_floor()
+    {
+        
+        for( int j = 0 ; j < window_height / 2 ; ++j )
+            for( int i = 0 ; i < window_width ; ++i )
+            {
+                Pixel* lhs = &at( i,j ) ;
+                Pixel* rhs = &at( i, window_height - j - 1 ) ;
+                
+                Pixel temp = *lhs ;
+                
+                *lhs = *rhs ;
+                *rhs = temp ;
+            }
+    }
+    
+    // We use out own reading/writing functions because libpng may have
+    // been compiled using a different compiler & libc.  That could make
+    // the FILE*'s incompatible.
+    inline static void write_func(png_structp png_ptr, png_bytep data, png_size_t length)
+    {
+        png_voidp write_io_ptr = png_get_io_ptr(png_ptr);
+        fwrite((unsigned char*) data, length, 1, (FILE*) write_io_ptr);
+    }
+    
+    inline static void flush_func(png_structp png_ptr)
+    {
+        png_voidp write_io_ptr = png_get_io_ptr(png_ptr);
+        fflush((FILE*) write_io_ptr);
+    }
+    
+    inline bool save_png(const char* fname)
+    {
+        
+        m_data = (Pixel*) malloc(window_width * window_height * sizeof(Pixel));
+        
+        glReadPixels(0, 0, window_width, window_height, GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char *)(m_data));
+        
+        flip_ceil_to_floor();
+        FILE* fp = NULL;
+        bool rval = true;
+        png_structp png_ptr = NULL;
+        png_infop info_ptr = NULL;
+        
+        // Some error strings
+        char open[] = "Error opening %s\n";
+        char problem[] = "libpng encountered a problem writing %s)\n";
+        
+        // Open the file for reading in binary mode.
+        fp = fopen(fname, "wb");
+        
+        if (!fp) {
+            fprintf(stderr, open, fname);
+            rval = false;
+            goto YImage_save_cleanup;
+        }
+        
+        // Allocate the png structs.
+        png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+        
+        if (!png_ptr) {
+            fprintf(stderr, problem, fname);
+            rval = false;
+            goto YImage_save_cleanup;
+        }
+        
+        info_ptr = png_create_info_struct(png_ptr);
+        
+        if (!info_ptr) {
+            fprintf(stderr, problem, fname);
+            rval = false;
+            goto YImage_save_cleanup;
+        }
+        
+        // Set up the png error routine.
+        if (setjmp(png_jmpbuf(png_ptr))) {
+            fprintf(stderr, problem, fname);
+            rval = false;
+            goto YImage_save_cleanup;
+        }
+        
+        // Give libpng the FILE*.
+        // png_init_io(png_ptr, fp);
+        // or
+        // use our own write callback
+        png_set_write_fn(png_ptr, fp, (png_rw_ptr) write_func, flush_func);
+        //png_init_io(png_ptr, fp);
+        
+        // We'll use the low-level interface since the high-level interface won't handle
+        // png_set_filler() which we need to tell libpng to strip out the A from our
+        // 4-byte pixels.
+        
+        // First we set and write the info struct.
+        png_set_IHDR(
+                     png_ptr, info_ptr,
+                     window_width, window_height,
+                     8, PNG_COLOR_TYPE_RGB_ALPHA,
+                     PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT
+                     );
+        
+        png_write_info(png_ptr, info_ptr);
+        
+        // Then we set up transforms.
+        /*
+         // 1. tell libpng to strip out the filler byte in our 4-byte pixels
+         // if YPixel::a comes after any other member (b,g,r), we stip AFTER
+         if (offsetof(YPixel, a) > offsetof(YPixel, b)) {
+         png_set_filler(png_ptr, 0, PNG_FILLER_AFTER);
+         // printf("alpha after\n");
+         } else {
+         png_set_filler(png_ptr, 0, PNG_FILLER_BEFORE);
+         // printf("alpha before\n");
+         }
+         */
+        if (offsetof(Pixel, a) < offsetof(Pixel, b))
+            png_set_swap_alpha(png_ptr);
+        
+        // 2. tell libpng how our color triples are stored (b < r or vice versa)
+        if (offsetof(Pixel, b) < offsetof(Pixel, r)) {
+            png_set_bgr(png_ptr);
+            // printf("bgr\n");
+        }
+        
+        // else { printf("rgb\n"); }
+        
+        // Finally we create a row_pointers[] pointing into our data* and write the png out to the FILE*.
+        {
+            // 1. allocate row pointers array
+            png_bytep* row_pointers = (png_bytep*) png_malloc(png_ptr, window_height * sizeof(png_bytep));
+            // 2. point row pointers into m_data
+            
+            for (int i = 0; i < window_height; ++i) {
+                row_pointers[i] = (png_bytep)(m_data + i * window_width);
+            }
+            
+            // 3. write the image data
+            png_write_image(png_ptr, row_pointers);
+            
+            // 4. free row pointers array
+            png_free(png_ptr, row_pointers);
+        }
+        
+        // Write out end info.  We're done.  Fall through to cleanup.
+        png_write_end(png_ptr, NULL);
+        
+    YImage_save_cleanup:
+        png_destroy_write_struct(png_ptr ? &png_ptr : NULL, info_ptr ? &info_ptr : NULL);
+        
+        if (fp) fclose(fp);
+        
+        return rval;
+    }
+    
+}
 
 struct Vector2{
     
@@ -135,7 +328,7 @@ public:
     float radius;
     float mass;
     float duration;//duration of existance. Not used now.
-
+    
     Vector2 position;
     Vector2 velocity;
     Vector2 force;
@@ -216,7 +409,18 @@ public:
     
 };
 
-vector<Particle> particles;
+inline void save_image(){
+    
+    static int image_count=0;
+    
+    std::stringstream filename_ss;
+    
+    mkdir(output_directory.c_str(), 0755);
+    filename_ss <<output_directory<< "/image" << std::setfill('0') << std::setw(6) << image_count++ << ".png";
+    
+    png_writer::save_png(filename_ss.str().c_str());
+    
+}
 
 inline void handleCollision(){
     for(int i=0;i!=particles.size();++i){
@@ -268,7 +472,7 @@ inline void drawParticles(){
     
     glEnable(GL_POINT_SMOOTH);
     if(uniform_radius){
-        sizePx=(height*particle_radius/(1.f+1.f)*2.f);
+        sizePx=(window_height*particle_radius/(1.f+1.f)*2.f);
         glPointSize( sizePx );
         
         glBegin(GL_POINTS);
@@ -283,7 +487,7 @@ inline void drawParticles(){
         
         for( auto &particle:particles){
             
-            sizePx=(height*particle.radius/(1.f+1.f)*2.f);
+            sizePx=(window_height*particle.radius/(1.f+1.f)*2.f);
             
             glPointSize( sizePx );
             
@@ -362,9 +566,9 @@ static void clear(){
 
 inline void render (GLFWwindow * window){
     
-    glfwGetFramebufferSize(window, &width, &height);
-    window_ratio = width / (float)height;
-    glViewport(0, 0, width, height);
+    glfwGetFramebufferSize(window, &window_width, &window_height);
+    window_ratio = window_width / (float)window_height;
+    glViewport(0, 0, window_width, window_height);
     glClear(GL_COLOR_BUFFER_BIT);
     
     //Make the aspect ratio to be invariant for window resize.
@@ -408,6 +612,18 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
     if ( (key==GLFW_KEY_R or key==GLFW_KEY_0)  &&action==GLFW_PRESS){
         clear();
         generate_particles();
+    }
+    
+    if ( key==GLFW_KEY_S &&action==GLFW_PRESS){
+        
+        save_image();
+        
+    }
+    
+    if ( key==GLFW_KEY_W &&action==GLFW_PRESS){
+        
+        record_images=!record_images;
+        
     }
     
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -485,11 +701,14 @@ void show_key_mouse_setting(){
     cout<<"r/0: Reset."<<endl;
     cout<<"a: Add "<<num_particle<<" particles."<<endl;
     cout<<"Arrow keys: Act force."<<endl;
+    cout<<"s: Save a screen shot."<<endl;
+    cout<<"w: Turn on/off recording mode. Images are saved in \""<<output_directory<<"\"directory."<<endl;
+
     cout<<endl;
     cout<<"[MOUSE SETTING]"<<endl;
     cout<<"Left click: Pull particles."<<endl;
     cout<<"Right click: Repel particles."<<endl;
-
+    
 }
 
 int main(void)
@@ -501,7 +720,7 @@ int main(void)
     glfwSetErrorCallback(error_callback);
     if (!glfwInit())
         exit(EXIT_FAILURE);
-    window = glfwCreateWindow(640, 480, "Simple example", NULL, NULL);
+    window = glfwCreateWindow(60*16, 60*9, "Simple example", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -533,6 +752,10 @@ int main(void)
             step();
             
             render(window);
+            
+            if(record_images){
+                save_image();
+            }
             
             lastTime = glfwGetTime();
         }
