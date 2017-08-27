@@ -1,5 +1,5 @@
 # bouncing_particles2D
-This is a 2D implementation of bouncing particles in a box.
+This is a 2D implementation of bouncing particles in a box (in C++).
 
 
 [KEY SETTING]  
