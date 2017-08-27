@@ -11,17 +11,12 @@ Arrow keys: Act force.
 Left click: Pull particles.  
 Right click: Repel particles.
 
+Dependencies: OpenGL, GLFW3, GLEW  
+Author: Sadashige Ishida  
+License: MIT  
 
-Author: Sadashige Ishida
-
-License: MIT
-
-Dependencies: OpenGL, GLFW3, GLEW
-
-
-Currently attached Makefile and CMakeLists.txt are supported only for Mac.
+Currently attached Makefile and CMakeLists.txt are supported only for Mac.  
 <!-- The library was tested on Mac OS X 10.11.6 -->
-
 For Xcode users,   [Getting Started in OpenGL with GLFW/GLEW in Xcode 6(Youtube)][1]
 
 [1]:https://www.youtube.com/watch?v=lTmM3Y8SMOM
