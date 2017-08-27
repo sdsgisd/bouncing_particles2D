@@ -1,3 +1,12 @@
+//
+//  bouncing_particles2D.cpp
+//  BOUNCING_PARTICLES2D
+//
+//  Created by Sadashige Ishida on 8/27/17.
+//
+//
+
+
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
 #include <stdio.h>
