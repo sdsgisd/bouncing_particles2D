@@ -49,10 +49,37 @@ const float collisionDamp=0.95f;
 const float friction=1.f;//0.98f;
 
 float window_ratio;
-int width, height;
+int window_width, window_height;
 
 const float ceil_=-0.9f,floor_=0.9f;
 const float left_=-0.9f,right_=0.9f;
+
+
+static GLubyte *pixels = NULL;
+static const GLenum FORMAT = GL_RGBA;
+static const GLuint FORMAT_NBYTES = 4;
+
+static void create_ppm(char *prefix, int frame_id, unsigned int width, unsigned int height,
+                       unsigned int color_max, unsigned int pixel_nbytes, GLubyte *pixels) {
+    
+    pixels=(GLubyte*)malloc(FORMAT_NBYTES * window_width * window_height);
+    glReadPixels(0, 0, window_width, window_height, FORMAT, GL_UNSIGNED_BYTE, pixels);
+
+    size_t i, j, k, cur;
+    enum Constants { max_filename = 256 };
+    char filename[max_filename];
+    snprintf(filename, max_filename, "%s%d.png", prefix, frame_id);
+    FILE *f = fopen(filename, "w");
+    fprintf(f, "P3\n%d %d\n%d\n", width, window_height, 255);
+    for (i = 0; i < height; i++) {
+        for (j = 0; j < width; j++) {
+            cur = pixel_nbytes * ((height - i - 1) * width + j);
+            fprintf(f, "%3d %3d %3d ", pixels[cur], pixels[cur + 1], pixels[cur + 2]);
+        }
+        fprintf(f, "\n");
+    }
+    fclose(f);
+}
 
 struct Vector2{
     
@@ -268,7 +295,7 @@ inline void drawParticles(){
     
     glEnable(GL_POINT_SMOOTH);
     if(uniform_radius){
-        sizePx=(height*particle_radius/(1.f+1.f)*2.f);
+        sizePx=(window_height*particle_radius/(1.f+1.f)*2.f);
         glPointSize( sizePx );
         
         glBegin(GL_POINTS);
@@ -283,7 +310,7 @@ inline void drawParticles(){
         
         for( auto &particle:particles){
             
-            sizePx=(height*particle.radius/(1.f+1.f)*2.f);
+            sizePx=(window_height*particle.radius/(1.f+1.f)*2.f);
             
             glPointSize( sizePx );
             
@@ -362,9 +389,9 @@ static void clear(){
 
 inline void render (GLFWwindow * window){
     
-    glfwGetFramebufferSize(window, &width, &height);
-    window_ratio = width / (float)height;
-    glViewport(0, 0, width, height);
+    glfwGetFramebufferSize(window, &window_width, &window_height);
+    window_ratio = window_width / (float)window_height;
+    glViewport(0, 0, window_width, window_height);
     glClear(GL_COLOR_BUFFER_BIT);
     
     //Make the aspect ratio to be invariant for window resize.
@@ -408,6 +435,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action,
     if ( (key==GLFW_KEY_R or key==GLFW_KEY_0)  &&action==GLFW_PRESS){
         clear();
         generate_particles();
+    }
+    
+    if ( key==GLFW_KEY_S &&action==GLFW_PRESS){
+        static int nscreenshots=0;
+        create_ppm("tmp", ++nscreenshots, window_width, window_height, 255, FORMAT_NBYTES, pixels);
+
     }
     
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
