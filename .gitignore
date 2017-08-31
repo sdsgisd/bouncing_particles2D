@@ -36,3 +36,5 @@ Build/
 DerivedData/
 build/
 xcodebuild/
+
+.DS_Store
