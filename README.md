@@ -1,4 +1,4 @@
-# bouncing_particles2D
+# 2D bouncing paticles
 This is a 2D implementation of bouncing particles in a box (in C++).  
 [Youtube Video][Y]  
 <!-- [![Youtube Video](http://i.ytimg.com/vi/10r78SzERII/0.jpg)](https://www.youtube.com/watch?v=10r78SzERII) -->
