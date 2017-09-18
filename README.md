@@ -28,7 +28,7 @@ Dependencies: OpenGL, GLFW3, GLEW, libpng
 Author: Sadashige Ishida  
 License: MIT  
 
-Currently attached Makefile and CMakeLists.txt are supported only for Mac.  
+Currently attached Makefile and CMakeLists.txt are supported only for MacOS.  
 <!-- The library was tested on Mac OS X 10.11.6 -->
 For Xcode users,   [Getting Started in OpenGL with GLFW/GLEW in Xcode 6(Youtube)][X]
 
